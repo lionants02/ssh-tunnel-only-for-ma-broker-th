@@ -110,11 +110,29 @@ command="/usr/local/sbin/ssh-tunnel-only",no-agent-forwarding,no-X11-forwarding,
 sudoedit /etc/ssh/sshd_config
 ```
 
-ตรวจสอบหรือเพิ่มบรรทัดนี้ เพื่อให้ sshd อ่าน key จาก `/etc/ssh/authorized_keys/%u`
+ถ้าใน `/etc/ssh/sshd_config` ยังไม่มี `AuthorizedKeysFile` อยู่ก่อน ให้เพิ่มบรรทัดนี้ เพื่อให้ sshd ยังคงอ่าน key จาก home directory ตามปกติ และอ่าน key จาก `/etc/ssh/authorized_keys/%u` เพิ่มด้วย
 
 ```text
 AuthorizedKeysFile .ssh/authorized_keys /etc/ssh/authorized_keys/%u
 ```
+
+ตัวอย่างที่ควรใช้จริง ต้องมี 2 path นี้อยู่ใน directive เดียวกัน
+
+```text
+# path เดิมของ user ปกติ + path กลางที่ root เป็นเจ้าของ
+AuthorizedKeysFile .ssh/authorized_keys /etc/ssh/authorized_keys/%u
+```
+
+ตัวอย่างที่ไม่ควรใช้ เพราะจะทำให้ user ปกติที่ใช้ `~/.ssh/authorized_keys` ใช้งาน key เดิมไม่ได้
+
+```text
+# ผิด: เหลือเฉพาะ path กลาง ทำให้ path เดิมใน home directory ไม่ถูกอ่าน
+AuthorizedKeysFile /etc/ssh/authorized_keys/%u
+```
+
+การตั้งค่านี้ไม่กระทบ user ปกติที่ใช้ `~/.ssh/authorized_keys` เพราะยังคงมี `.ssh/authorized_keys` อยู่เป็น path แรก เพียงแต่ค่า `AuthorizedKeysFile` เป็นการ override ค่า default ของ sshd ดังนั้นต้องใส่ `.ssh/authorized_keys` ไว้ด้วยเสมอ
+
+ข้อควรระวังคืออย่ากำหนดเฉพาะ `/etc/ssh/authorized_keys/%u` เพราะจะทำให้ user ปกติที่ใช้ `~/.ssh/authorized_keys` login ด้วย key เดิมไม่ได้ และถ้า server มีค่า `AuthorizedKeysFile` แบบ custom อยู่แล้ว ให้รวมค่าเดิมไว้ด้วยก่อนเพิ่ม path ใหม่
 
 เพิ่ม block นี้ไว้ท้ายไฟล์
 
