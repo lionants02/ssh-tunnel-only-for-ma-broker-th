@@ -99,8 +99,17 @@ command="/usr/local/sbin/ssh-tunnel-only",no-agent-forwarding,no-X11-forwarding,
 ข้อควรระวัง:
 
 - `permitopen` ต้องเป็น host และ port ที่อนุญาตให้ tunnel ไปเท่านั้น
+- เพิ่ม `permitopen` ได้หลาย host หรือหลาย port โดยใส่ `permitopen="host:port"` ซ้ำใน public key บรรทัดเดียวกัน
 - ถ้ามีหลาย public key ให้เพิ่มแยกคนละบรรทัด และใส่ options จำกัดสิทธิ์หน้าทุก key
 - ห้ามใส่ private key บน server ให้เก็บ private key ไว้ที่เครื่องของผู้ใช้งานเท่านั้น
+
+ตัวอย่างอนุญาตหลาย host และหลาย port ให้ key เดียวกัน
+
+```text
+command="/usr/local/sbin/ssh-tunnel-only",no-agent-forwarding,no-X11-forwarding,no-pty,no-user-rc,permitopen="10.10.20.15:27017",permitopen="10.10.20.15:27018",permitopen="10.10.20.16:5432",permitopen="10.10.20.17:5432" ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIExamplePublicKey ma-user@example
+```
+
+ถ้าเพิ่มปลายทางใน `permitopen` ของ authorized key แล้ว ต้องเพิ่มปลายทางเดียวกันใน `PermitOpen` ของ `Match User ma-tunnel` ด้วย เพราะ OpenSSH จะใช้ข้อจำกัดทั้งสองชั้นร่วมกัน
 
 ## 4. ตั้งค่า sshd ให้รองรับ authorized key path และจำกัด user
 
