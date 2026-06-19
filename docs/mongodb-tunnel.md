@@ -1,3 +1,11 @@
+- [ตัวอย่าง SSH Tunnel ไปยัง MongoDB](#ตัวอย่าง-ssh-tunnel-ไปยัง-mongodb)
+  - [สร้าง tunnel](#สร้าง-tunnel)
+  - [เชื่อมต่อ MongoDB ผ่าน tunnel](#เชื่อมต่อ-mongodb-ผ่าน-tunnel)
+  - [สร้าง user แบบอ่านอย่างเดียวใน database ที่ต้องการ](#สร้าง-user-แบบอ่านอย่างเดียวใน-database-ที่ต้องการ)
+  - [ใช้ local port อื่นเมื่อเครื่อง local มี MongoDB อยู่แล้ว](#ใช้-local-port-อื่นเมื่อเครื่อง-local-มี-mongodb-อยู่แล้ว)
+  - [รัน tunnel แบบ background](#รัน-tunnel-แบบ-background)
+  - [ปัญหาที่พบบ่อย](#ปัญหาที่พบบ่อย)
+
 # ตัวอย่าง SSH Tunnel ไปยัง MongoDB
 
 ตัวอย่างนี้ใช้ SSH broker เป็นทางผ่านไปยัง MongoDB ที่อยู่บนเครื่อง `10.10.20.15` port `27017`
@@ -33,6 +41,40 @@ mongosh "mongodb://db_user@127.0.0.1:27017/app_db?authSource=admin"
 ```bash
 mongosh "mongodb://db_user@127.0.0.1:27017/app_db?authSource=admin" --password
 ```
+
+## สร้าง user แบบอ่านอย่างเดียวใน database ที่ต้องการ
+
+ให้เชื่อมต่อด้วย user ที่มีสิทธิ์สร้าง user ก่อน เช่น `root` หรือ user ที่มี role `userAdmin` บน database นั้น
+
+```bash
+mongosh "mongodb://admin_user@127.0.0.1:27017/admin" --password
+```
+
+จากนั้นสร้าง read-only user ใน database ที่ต้องการ เช่น `app_db`
+
+```javascript
+use app_db
+
+db.createUser({
+  user: "app_readonly",
+  pwd: passwordPrompt(),
+  roles: [
+    { role: "read", db: "app_db" }
+  ]
+})
+```
+
+ทดสอบเชื่อมต่อด้วย user ที่สร้างใหม่
+
+```bash
+mongosh "mongodb://app_readonly@127.0.0.1:27017/app_db?authSource=app_db" --password
+```
+
+หมายเหตุ:
+
+- `role: "read"` ทำให้ user อ่านข้อมูลใน database นั้นได้ แต่ไม่สามารถแก้ไขข้อมูลได้
+- ถ้าสร้าง user ไว้ใน database อื่น ให้เปลี่ยน `authSource` ให้ตรงกับ database ที่ใช้สร้าง user
+- ถ้าใช้ local port อื่น เช่น `127017` ให้เปลี่ยน `127.0.0.1:27017` เป็น `127.0.0.1:127017`
 
 ## ใช้ local port อื่นเมื่อเครื่อง local มี MongoDB อยู่แล้ว
 
