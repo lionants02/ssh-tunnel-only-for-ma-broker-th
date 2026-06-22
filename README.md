@@ -103,6 +103,16 @@ command="/usr/local/sbin/ssh-tunnel-only",no-agent-forwarding,no-X11-forwarding,
 - ถ้ามีหลาย public key ให้เพิ่มแยกคนละบรรทัด และใส่ options จำกัดสิทธิ์หน้าทุก key
 - ห้ามใส่ private key บน server ให้เก็บ private key ไว้ที่เครื่องของผู้ใช้งานเท่านั้น
 
+ตัวอย่างมีผู้ใช้งาน MA หลายคน ให้ใส่ public key ต่อกันลงมาในไฟล์เดียวกัน คนละ 1 บรรทัด
+
+```text
+command="/usr/local/sbin/ssh-tunnel-only",no-agent-forwarding,no-X11-forwarding,no-pty,no-user-rc,permitopen="10.10.20.15:27017",permitopen="10.10.20.16:5432" ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIUserOnePublicKey user-one@example
+command="/usr/local/sbin/ssh-tunnel-only",no-agent-forwarding,no-X11-forwarding,no-pty,no-user-rc,permitopen="10.10.20.15:27017",permitopen="10.10.20.16:5432" ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIUserTwoPublicKey user-two@example
+command="/usr/local/sbin/ssh-tunnel-only",no-agent-forwarding,no-X11-forwarding,no-pty,no-user-rc,permitopen="10.10.20.15:27017",permitopen="10.10.20.16:5432" ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIUserThreePublicKey user-three@example
+```
+
+ถ้าต้องการให้แต่ละคนเข้าถึงปลายทางไม่เท่ากัน สามารถกำหนด `permitopen` ต่างกันในแต่ละบรรทัดได้
+
 ตัวอย่างอนุญาตหลาย host และหลาย port ให้ key เดียวกัน
 
 ```text
